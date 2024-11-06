@@ -6,9 +6,32 @@ const router = express.Router();
 const projectsFilePath = path.join(__dirname, '../data/projects.json');
 const tasksFilePath = path.join(__dirname, '../data/tasks.json');
 
-// TODO : application 실행시 id값 수정
-let nextProjectId = 1;
-let nextTaskId = 1;
+let initProjectId = 1;
+let initTaskId = 1;
+
+// Project Id auto increment
+function nextProjectId(currentId){
+  const projects = loadData(projectsFilePath);
+  while(true){
+    if(projects.some((p) => p.id === currentId)) {
+      currentId++;
+      continue;
+    };
+    break;
+  }
+  return currentId;
+}
+// Task Id auto increment
+function nextTaskId(currentId){
+  const tasks = loadData(tasksFilePath);
+  while(true){
+    if(tasks.some((p) => p.id === currentId)) {
+      currentId++;
+    };
+    break;
+  }
+  return currentId;
+}
 
 // 데이터 로드 함수
 function loadData(filePath) {
@@ -24,7 +47,7 @@ function saveData(filePath, data) {
 router.post('/', (req, res) => {
   const { title, description } = req.body;
   const projects = loadData(projectsFilePath);
-  const newProject = { id: String(nextProjectId++), title, description, tasks: [] };
+  const newProject = { id: nextProjectId(initProjectId), title, description, tasks: [] };
   projects.push(newProject);
   saveData(projectsFilePath, projects);
   res.status(201).json(newProject);
@@ -75,7 +98,7 @@ router.post('/:projectId/tasks', (req, res) => {
   const {title, description, priority, dueDate} = req.body;
   const projects = loadData(projectsFilePath);
   const tasks = loadData(tasksFilePath);
-  const newTask = {pjId: req.params.projectId, id: nextTaskId++, title, description, priority, dueDate, status:"not-started"}
+  const newTask = {pjId: req.params.projectId, id: nextTaskId(initTaskId), title, description, priority, dueDate, status:"not-started"}
   tasks.push(newTask);
   saveData(tasksFilePath, tasks);
 
