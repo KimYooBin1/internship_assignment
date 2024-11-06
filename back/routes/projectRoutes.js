@@ -27,6 +27,7 @@ function nextTaskId(currentId){
   while(true){
     if(tasks.some((p) => p.id === currentId)) {
       currentId++;
+      continue;
     };
     break;
   }
@@ -63,13 +64,13 @@ router.get('/', (req, res) => {
 router.get('/:projectId', (req, res) => {
   const projects = loadData(projectsFilePath);
   const tasks = loadData(tasksFilePath);
-  const project = projects.find((p) => p.id === req.params.projectId);
+  const project = projects.find((p) => String(p.id) === req.params.projectId);
 
   if (!project) {
     return res.status(404).json({ error: 'Project not found' });
   }
 
-  const projectTasks = tasks.filter((t) => t.pjId === project.id);
+  const projectTasks = tasks.filter((t) => t.pjId === String(project.id));
   const TaskIds = projectTasks.map((t) => t.id);
   res.json({ ...project, tasks: TaskIds });
 });
@@ -78,7 +79,7 @@ router.get('/:projectId', (req, res) => {
 router.delete('/:projectId', (req, res) => {
   const projects = loadData(projectsFilePath);
   const tasks = loadData(tasksFilePath);
-  const projectIndex = projects.findIndex((p) => p.id === req.params.projectId);
+  const projectIndex = projects.findIndex((p) => String(p.id) === req.params.projectId);
 
   if (projectIndex === -1) {
     return res.status(404).json({ error: 'Project not found' });
@@ -94,6 +95,7 @@ router.delete('/:projectId', (req, res) => {
   res.json({ message: 'Project deleted successfully' });
 });
 
+// task 추가
 router.post('/:projectId/tasks', (req, res) => {
   const {title, description, priority, dueDate} = req.body;
   const projects = loadData(projectsFilePath);
@@ -102,7 +104,7 @@ router.post('/:projectId/tasks', (req, res) => {
   tasks.push(newTask);
   saveData(tasksFilePath, tasks);
 
-  const findProject = projects.find((p) => p.id === req.params.projectId);
+  const findProject = projects.find((p) => String(p.id) === req.params.projectId);
   if (!findProject) {
     return res.status(404).json({ error: 'Project not found' });
   }
@@ -113,8 +115,9 @@ router.post('/:projectId/tasks', (req, res) => {
   res.json(newTask)
 })
 
+// task 조회
 router.get("/:projectId/tasks", (req, res) => {
-  const project = loadData(projectsFilePath).find((p) => p.id === req.params.projectId);
+  const project = loadData(projectsFilePath).find((p) => String(p.id) === req.params.projectId);
   if(!project){
     return res.status(404).json({ error: 'Project not found' });
   }
@@ -122,24 +125,32 @@ router.get("/:projectId/tasks", (req, res) => {
   res.json(tasks);
 })
 
+// task 수정
 router.put('/:projectId/tasks/:tasksId', (req, res) => {
   const {title, priority, dueDate, status} = req.body;
   const tasks = loadData(tasksFilePath);
-  const taskIndex = tasks.findIndex((t) => String(t.id) === req.params.tasksId && t.pjId === req.params.projectId);
+  const taskIndex = tasks.findIndex((t) => String(t.id) === req.params.tasksId);
   if(taskIndex == -1){
     return res.status(404).json({ error: 'Task not found' });
+  }
+  if(tasks[taskIndex].pjId !== req.params.projectId){
+    return res.status(403).json({ error: 'Project ID does not match' });
   }
   tasks[taskIndex] = {...tasks[taskIndex], title, priority, dueDate, status};
   saveData(tasksFilePath, tasks);
   res.json(tasks[taskIndex]);
 })
 
+// task 삭제
 router.delete('/:projectId/tasks/:taskId', (req, res) => {
   const tasks = loadData(tasksFilePath);
   const projects = loadData(projectsFilePath);
-  const taskIndex = tasks.findIndex((t) => String(t.id) === req.params.taskId && t.pjId === req.params.projectId);
+  const taskIndex = tasks.findIndex((t) => String(t.id) === req.params.taskId);
   if(taskIndex == -1){
     return res.status(404).json({ error: 'Task not found' });
+  }
+  if(tasks[taskIndex].pjId !== req.params.projectId){
+    return res.status(403).json({ error: 'Project ID does not match' });
   }
   tasks.splice(taskIndex, 1);
   saveData(tasksFilePath, tasks);
