@@ -35,4 +35,38 @@ router.get('/', (req, res) => {
   res.json(projects);
 });
 
+// 프로젝트 상세 조회
+router.get('/:projectId', (req, res) => {
+  const projects = loadData(projectsFilePath);
+  const tasks = loadData(tasksFilePath);
+  const project = projects.find((p) => p.id === req.params.projectId);
+
+  if (!project) {
+    return res.status(404).json({ error: 'Project not found' });
+  }
+
+  const projectTasks = tasks.filter((t) => t.pjId === project.id);
+  res.json({ ...project, tasks: projectTasks });
+});
+
+// 프로젝트 삭제
+router.delete('/:projectId', (req, res) => {
+  const projects = loadData(projectsFilePath);
+  const tasks = loadData(tasksFilePath);
+  const projectIndex = projects.findIndex((p) => p.id === req.params.projectId);
+
+  if (projectIndex === -1) {
+    return res.status(404).json({ error: 'Project not found' });
+  }
+
+  const hasTasks = tasks.some((t) => t.pjId === projects[projectIndex].id);
+  if (hasTasks) {
+    return res.status(400).json({ error: 'Cannot delete project with tasks' });
+  }
+
+  projects.splice(projectIndex, 1);
+  saveData(projectsFilePath, projects);
+  res.json({ message: 'Project deleted successfully' });
+});
+
 module.exports = router;
