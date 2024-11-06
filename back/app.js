@@ -12,7 +12,7 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
-app.use("/project", projectRoutes);
+app.use("/projects", projectRoutes);
 app.use("/task", taskRoutes);
 
 app.listen(port, () => {
