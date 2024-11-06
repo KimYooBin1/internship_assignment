@@ -89,4 +89,13 @@ router.post('/:projectId/tasks', (req, res) => {
   res.json(newTask)
 })
 
+router.get("/:projectId/tasks", (req, res) => {
+  const project = loadData(projectsFilePath).find((p) => p.id === req.params.projectId);
+  if(!project){
+    return res.status(404).json({ error: 'Project not found' });
+  }
+  const tasks = loadData(tasksFilePath).filter((t) => t.pjId === req.params.projectId);
+  res.json(tasks);
+})
+
 module.exports = router;
