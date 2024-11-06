@@ -111,4 +111,24 @@ router.put('/:projectId/tasks/:tasksId', (req, res) => {
   res.json(tasks[taskIndex]);
 })
 
+router.delete('/:projectId/tasks/:taskId', (req, res) => {
+  const tasks = loadData(tasksFilePath);
+  const projects = loadData(projectsFilePath);
+  const taskIndex = tasks.findIndex((t) => String(t.id) === req.params.taskId && t.pjId === req.params.projectId);
+  if(taskIndex == -1){
+    return res.status(404).json({ error: 'Task not found' });
+  }
+  tasks.splice(taskIndex, 1);
+  saveData(tasksFilePath, tasks);
+
+  const project = projects.find((p) => String(p.id) === req.params.projectId);
+  if (!project) {
+    return res.status(404).json({ error: 'Project not found' });
+  }
+  project.tasks = project.tasks.filter((id) => String(id) !== req.params.taskId);
+  saveData(projectsFilePath, projects);
+
+  res.json({ message: 'Task deleted successfully' });
+})
+
 module.exports = router;
