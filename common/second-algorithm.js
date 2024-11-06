@@ -1,33 +1,36 @@
-function isEmpty(value) {
+function isEmpty(value, root = true) {
+    let result = false;
     // null, undefined
     if (value === null || value === undefined) {
-        return true;
+        result = true;
     }
 
     // 빈 문자열
-    if (typeof value === "string") {
-        return value === "";
+    else if (typeof value === "string") {
+        result = value === "";
     }
 
     // 배열
-    if (Array.isArray(value)) {
+    else if (Array.isArray(value)) {
         // 모든 요소 확인
-        return value.every(isEmpty);
+        result = value.every(v => isEmpty(v, false));
     }
 
     // 객체
-    if (typeof value === "object") {
+    else if (typeof value === "object") {
         // 모든 속성, 키 확인
-        return Object.keys(value).length === 0 || Object.values(value).every(isEmpty);
+        result = Object.keys(value).length === 0 || Object.values(value).every(v => isEmpty(v, false));
     }
-
-    // 원시 타입
-    return false;
+    // root를 사용해서 재귀가 발생한 경우에는 출력하지 않는다
+    if(root){
+        console.log(result);
+    }
+    return result;
 }
 
-console.log(isEmpty(null)); // true
-console.log(isEmpty({})); // true
-console.log(isEmpty(0)); // false
-console.log(isEmpty(false)); // false
-console.log(isEmpty([{}, {a:[]}])) // true
-console.log(isEmpty({a: null, b: ''})); // true
+isEmpty(null); // true
+isEmpty({}); // true
+isEmpty(0); // false
+isEmpty(false); // false
+isEmpty([{}, {a:[]}]) // true
+isEmpty({a: null, b: ''}); // true
