@@ -47,7 +47,8 @@ router.get('/:projectId', (req, res) => {
   }
 
   const projectTasks = tasks.filter((t) => t.pjId === project.id);
-  res.json({ ...project, tasks: projectTasks });
+  const TaskIds = projectTasks.map((t) => t.id);
+  res.json({ ...project, tasks: TaskIds });
 });
 
 // 프로젝트 삭제
@@ -82,7 +83,7 @@ router.post('/:projectId/tasks', (req, res) => {
   if (!findProject) {
     return res.status(404).json({ error: 'Project not found' });
   }
-  findProject.tasks.push(newTask);
+  findProject.tasks.push(newTask.id);
 
   saveData(projectsFilePath, projects)
 
@@ -96,6 +97,18 @@ router.get("/:projectId/tasks", (req, res) => {
   }
   const tasks = loadData(tasksFilePath).filter((t) => t.pjId === req.params.projectId);
   res.json(tasks);
+})
+
+router.put('/:projectId/tasks/:tasksId', (req, res) => {
+  const {title, priority, dueDate, status} = req.body;
+  const tasks = loadData(tasksFilePath);
+  const taskIndex = tasks.findIndex((t) => String(t.id) === req.params.tasksId && t.pjId === req.params.projectId);
+  if(taskIndex == -1){
+    return res.status(404).json({ error: 'Task not found' });
+  }
+  tasks[taskIndex] = {...tasks[taskIndex], title, priority, dueDate, status};
+  saveData(tasksFilePath, tasks);
+  res.json(tasks[taskIndex]);
 })
 
 module.exports = router;
