@@ -8,6 +8,7 @@ const tasksFilePath = path.join(__dirname, '../data/tasks.json');
 
 // TODO : application 실행시 id값 수정
 let nextProjectId = 1;
+let nextTaskId = 1;
 
 // 데이터 로드 함수
 function loadData(filePath) {
@@ -68,5 +69,24 @@ router.delete('/:projectId', (req, res) => {
   saveData(projectsFilePath, projects);
   res.json({ message: 'Project deleted successfully' });
 });
+
+router.post('/:projectId/tasks', (req, res) => {
+  const {title, description, priority, dueDate} = req.body;
+  const projects = loadData(projectsFilePath);
+  const tasks = loadData(tasksFilePath);
+  const newTask = {pjId: req.params.projectId, id: nextTaskId++, title, description, priority, dueDate, status:"not-started"}
+  tasks.push(newTask);
+  saveData(tasksFilePath, tasks);
+
+  const findProject = projects.find((p) => p.id === req.params.projectId);
+  if (!findProject) {
+    return res.status(404).json({ error: 'Project not found' });
+  }
+  findProject.tasks.push(newTask);
+
+  saveData(projectsFilePath, projects)
+
+  res.json(newTask)
+})
 
 module.exports = router;
